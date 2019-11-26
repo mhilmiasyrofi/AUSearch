@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <title>404 - Not Found</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+            
+    <link rel="icon" type="image/png" href="https://repository.sonatype.org/favicon.png">
+    <!--[if IE]>
+    <link rel="SHORTCUT ICON" href="https://repository.sonatype.org/favicon.ico"/>
+    <![endif]-->
+
+    <link rel="stylesheet" href="https://repository.sonatype.org/static/css/Sonatype-content.css?2.14.15-01" type="text/css" media="screen" title="no title" charset="utf-8">
+  </head>
+  <body>
+    <h1>404 - Not Found</h1>
+    <p>The path /groovy/groovy/1.0-rc1-snapshot/groovy-1.0-rc1-snapshot.jar is cached until 2019-11-09T07:57:57.751Z as not found in repository M2Repository(id=central-proxy)</p>
+  </body>
+</html>

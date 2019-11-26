@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <title>404 - Not Found</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+            
+    <link rel="icon" type="image/png" href="https://repository.sonatype.org/favicon.png">
+    <!--[if IE]>
+    <link rel="SHORTCUT ICON" href="https://repository.sonatype.org/favicon.ico"/>
+    <![endif]-->
+
+    <link rel="stylesheet" href="https://repository.sonatype.org/static/css/Sonatype-content.css?2.14.15-01" type="text/css" media="screen" title="no title" charset="utf-8">
+  </head>
+  <body>
+    <h1>404 - Not Found</h1>
+    <p>Path /com/segment/analytics/android/analytics-integration-google-analytics/3.4.0/analytics-integration-google-analytics-3.4.0.jar not found in local nor in remote storage of M2Repository(id=central-proxy)</p>
+  </body>
+</html>
