@@ -29,3 +29,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+/src/main/java/soar/edu/searchvisualization/data/
+/src/main/java/soar/edu/searchvisualization/jars/
