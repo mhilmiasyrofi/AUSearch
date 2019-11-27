@@ -3,7 +3,7 @@ package soar.edu.searchvisualization.model;
 public class GithubToken {
     String token;
     boolean used;
-
+    
     public GithubToken(String token) {
         this.token = token;
         this.used = false;
@@ -15,7 +15,7 @@ public class GithubToken {
     public String getToken() {
         return token;
     }
-
+    
     /**
      * @return the used
      */

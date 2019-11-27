@@ -41,12 +41,10 @@
                 System.out.println(resolvedFiles.get(i).getUrl());
         %>
                 <div class="result-row">
-                    <div class="row">
-                        <div class="col s12">
-                            <a href="<%=resolvedFiles.get(i).getUrl()%>">
-                                <div class="card horizontal" style="color:black">
-                                    <div class="card-content" style="padding-top:0px">
-                                        <pre class="prettyprint">
+                    <a href="<%=resolvedFiles.get(i).getUrl()%>">
+                        <div class="card horizontal col offset-m0 offset-l1 m12 l10" style="color:black">
+                            <div class="card-content" style="padding-top:0px">
+                                <pre class="prettyprint" style="border-color: transparent;">
 <%
 ArrayList<String> codes = resolvedFiles.get(i).getCodes();
 int middle = (codes.size() + 1)/2;
@@ -60,12 +58,10 @@ for (int j = 0; j < codes.size(); j++) {
 }
 %> 
 <%=snippetCodes%> 
-                                        </pre>
-                                    </div>
-                                </div>
-                            </a>
+                                </pre>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
         <%
             }

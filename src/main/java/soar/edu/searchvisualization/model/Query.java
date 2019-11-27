@@ -70,4 +70,17 @@ public class Query {
         return query;
     }
 
+    public String toStringRequest() {
+        String request = this.fullyQualifiedName + " " + this.method;
+        request += " ";
+        for (int i = 0; i < this.arguments.size(); i++) {
+            if (i != this.arguments.size() - 1) {
+                request += this.arguments.get(i) + " ";
+            } else {
+                request += this.arguments.get(i);
+            }
+        }
+        return request;
+    }
+
 }

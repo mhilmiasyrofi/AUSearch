@@ -22,6 +22,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,6 +61,7 @@ public class CodeSearch {
     // run multiple token
     // please make sure that the number of thread is equal with the number of tokens
     private static final int NUMBER_THREADS = 3;
+    private static final int NUMBER_CORE = 4;
 
     // parameter for the request
     private static final String PARAM_QUERY = "q"; //$NON-NLS-1$
@@ -77,18 +80,19 @@ public class CodeSearch {
     private static final int ABUSE_RATE_LIMITS = 403;
     private static final int UNPROCESSABLE_ENTITY = 422;
 
-    private static final long INFINITY = -1;
-    private static long MAX_DATA = INFINITY;
+    private static long MAX_DATA = 5;
 
     // folder location to save the downloaded files and jars
     private static String DATA_LOCATION = "src/main/java/soar/edu/searchvisualization/data/";
     private static final String JARS_LOCATION = "src/main/java/soar/edu/searchvisualization/jars/";
-    private static final String ANDROID_JAR_LOCATION = "src/main/java/soar/edu/searchvisualization/android/";
-
+    
     private static final String endpoint = "https://api.github.com/search/code";
 
     private static SynchronizedData synchronizedData = new SynchronizedData();
     private static SynchronizedFeeder synchronizedFeeder = new SynchronizedFeeder();
+
+    private static ResolvedData resolvedData = new ResolvedData();
+    private static SynchronizedTypeSolver synchronizedTypeSolver = new SynchronizedTypeSolver();
 
     private String query;
 
@@ -96,55 +100,80 @@ public class CodeSearch {
         this.query = q;
     }
 
-    public ArrayList<ResolvedFile> run() {
-        ArrayList<ResolvedFile> resolvedFiles = new ArrayList<ResolvedFile>();
+    public void clean() {
+        resolvedData = new ResolvedData();
+        synchronizedData = new SynchronizedData();
+    }
+
+    public ResolvedData run() {
         ArrayList<Query> queries = parseQueries(this.query);
         if (queries.size() > 0) {
             printQuery(queries);
             initUniqueFolderToSaveData(queries);
-            resolvedFiles = processQuery(queries);
-            for (int i = 0; i < resolvedFiles.size(); i++) {
+            processQuery(queries);
+            for (int i = 0; i < resolvedData.getResolvedFiles().size(); i++) {
                 System.out.println();
-                System.out.println("URL: " + resolvedFiles.get(i).getUrl());
-                System.out.println("PathFile: " + resolvedFiles.get(i).getPathFile());
-                System.out.println("Line: " + resolvedFiles.get(i).getLine());
-                System.out.println("Column: " + resolvedFiles.get(i).getColumn());
+                System.out.println("URL: " + resolvedData.getResolvedFiles().get(i).getUrl());
+                System.out.println("Path to File: " + resolvedData.getResolvedFiles().get(i).getPathFile());
+                System.out.println("Line: " + resolvedData.getResolvedFiles().get(i).getLines());
                 System.out.println("=== Snippet Codes ===");
-                ArrayList<String> codes = getSnippetCode(resolvedFiles.get(i).getPathFile(),
-                        resolvedFiles.get(i).getLine());
+                ArrayList<String> codes = getSnippetCode(resolvedData.getResolvedFiles().get(i).getPathFile(),
+                        resolvedData.getResolvedFiles().get(i).getLines());
                 for (int j = 0; j < codes.size(); j++) {
                     System.out.println(codes.get(j));
                 }
             }
+            
         }
 
-        return resolvedFiles;
+        return resolvedData;
     }
 
-    private static ArrayList<String> getSnippetCode(String pathFile, int desiredLine) {
+    private static ArrayList<String> getSnippetCode(String pathFile, ArrayList<Integer> lines) {
         ArrayList<String> codes = new ArrayList<String>();
+
+        int min, max, length;
+        length = lines.size();
+        if (length == 1) {
+            min = max = lines.get(0).intValue();
+        } else {
+            min = lines.get(0).intValue();
+            max = lines.get(0).intValue();
+            for (int i = 1; i < length; i++) {
+                if (lines.get(i).intValue() < min) {
+                    min = lines.get(i).intValue();
+                }
+                if (lines.get(i).intValue() > max) {
+                    max = lines.get(i).intValue();
+                }
+            }
+        }
 
         BufferedReader reader;
         int i = 0;
         try {
             reader = new BufferedReader(new FileReader(pathFile));
             String line = reader.readLine();
+            boolean desiredLine = false;
             while (line != null) {
                 i++;
                 // System.out.println(line);
 
-                if (i < (desiredLine + 5) && i > (desiredLine - 5)) {
-                    System.out.println(line);
-                    if (i == desiredLine) {
-                        String method = "removeGpsStatusListener";
-                        int column = line.indexOf(method);
-                        System.out.println(column);
-                        System.out.println(method.length());
-                        String edited = line.substring(0, column) + "<mark>" + method + "</mark>" + line.substring(column + method.length());
-                        codes.add(edited);
-                    } else {
-                        codes.add(line);
+                if (i < (max + 5) && i > (min - 5)) {
+                    for (int j = 0; j < lines.size(); j++) {
+                        
+                        if (i == lines.get(j).intValue()){
+                            desiredLine = true;
+                            break;
+                        }
                     }
+                    if (desiredLine) {
+                        line = "<mark>" + i + line + "</mark>";
+                        desiredLine = false;
+                    } else {
+                        line = i + line;
+                    }
+                    codes.add(line);
                 }
                 // read next line
                 line = reader.readLine();
@@ -156,54 +185,8 @@ public class CodeSearch {
 
         return codes;
     }
-    
-    private static ArrayList<Query> parseQueries(String s) {
-        ArrayList<Query> queries = new ArrayList<Query>();
 
-        Query query = new Query();
-
-        s = s.replace(" ", "");
-        while (!s.equals("")) {
-            int tagLocation = s.indexOf('#');
-            int leftBracketLocation = s.indexOf('(');
-            int rightBracketLocation = s.indexOf(')');
-            if (tagLocation == -1 | leftBracketLocation == -1 || rightBracketLocation == -1
-                    && tagLocation < leftBracketLocation && leftBracketLocation < rightBracketLocation) {
-                System.out.println("Your query isn't accepted");
-                System.out.println("Query Format: " + "method(argument_1, argument_2, ... , argument_n)");
-                System.out.println("Example: "
-                        + "android.app.Notification.Builder#addAction(int, java.lang.CharSequence, android.app.PendingIntent)");
-                ;
-                return new ArrayList<Query>();
-            } else {
-                String fullyQualifiedName = s.substring(0, tagLocation);
-                String method = s.substring(tagLocation + 1, leftBracketLocation);
-                String args = s.substring(leftBracketLocation + 1, rightBracketLocation);
-                ArrayList<String> arguments = new ArrayList<String>();
-                if (!args.equals("")) { // handle if no arguments
-                    String[] arr = args.split(",");
-                    for (int i = 0; i < arr.length; i++) {
-                        arguments.add(arr[i]);
-                    }
-                }
-                query.setFullyQualifiedName(fullyQualifiedName);
-                query.setMethod(method);
-                query.setArguments(arguments);
-                queries.add(query);
-                int andLocation = s.indexOf('&');
-                if (andLocation == -1) {
-                    s = "";
-                } else {
-                    s = s.substring(andLocation + 1);
-                }
-            }
-        }
-
-        return queries;
-    }
-
-    private static ArrayList<ResolvedFile> processQuery(ArrayList<Query> queries) {
-        ArrayList<ResolvedFile> resolvedFiles = new ArrayList<ResolvedFile>();
+    private static void processQuery(ArrayList<Query> queries) {
 
         String query = prepareQuery(queries);
 
@@ -228,24 +211,10 @@ public class CodeSearch {
             }
 
             int id = 0;
-            boolean isDownloaded, isResolved;
             ArrayList<String> urls = new ArrayList<>();
-            CombinedTypeSolver combinedTypeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(false),
-                    new JavaParserTypeSolver(new File("src/main/java")));
 
-            List<File> androidJars = findJarFiles(new File(ANDROID_JAR_LOCATION));
-            for (File jar : androidJars) {
-                try {
-                    combinedTypeSolver.add(JarTypeSolver.getJarTypeSolver(jar.getPath()));
-                } catch (IOException e) {
-                    System.out.println("Can't add the jar: " + jar);
-                    // TODO Auto-generated catch block
-                    // e.printStackTrace();
-                }
-            }
-
-            while (!data.isEmpty() && resolvedFiles.size() < 1) {
-                if (data.size() == 1 && resolvedFiles.isEmpty()) {
+            while (resolvedData.getResolvedFiles().size() < 5) {
+                if (data.size() < (2 * NUMBER_CORE)) {
                     response = handleGithubRequestWithUrl(nextUrlRequest);
                     item = response.getItem();
                     nextUrlRequest = response.getNextUrlRequest();
@@ -254,24 +223,64 @@ public class CodeSearch {
                         data.add(instance.getString("html_url"));
                     }
                 }
-                String htmlUrl = data.remove();
-                urls.add(htmlUrl);
-                isDownloaded = downloadFile(htmlUrl, id);
-                if (isDownloaded) {
-                    ResolvedFile resolvedFile = resolveFile(id, queries, combinedTypeSolver);
-                    resolvedFile.setUrl(htmlUrl);
-                    if (!resolvedFile.getUrl().equals("")) {
-                        isResolved = true;
-                        resolvedFiles.add(resolvedFile);
-                        System.out.println("File: " + urls.get(id));
-                    }
+
+                // System.out.println("=====================");
+                // System.out.println("Multi-threading start");
+                // System.out.println("=====================");
+
+                ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);
+
+                for (int i = 0; i < NUMBER_CORE; i++) {
+                    String htmlUrl = data.remove();
+                    urls.add(htmlUrl);
+                    id = id + 1;
+                    Runnable worker = new RunnableResolver(id, htmlUrl, queries);
+                    executor.execute(worker);
                 }
-                id = id + 1;
+
+                executor.shutdown();
+                // Wait until all threads are finish
+                while (!executor.isTerminated()) {
+                }
+
+                // System.out.println("===================");
+                // System.out.println("Multi-threading end");
+                // System.out.println("===================");
+
             }
         }
+    }
 
-        return resolvedFiles;
+    public static class RunnableResolver implements Runnable {
+        private final int id;
+        private final String htmlUrl;
+        private final ArrayList<Query> queries;
 
+        RunnableResolver(int id, String htmlUrl, ArrayList<Query> queries) {
+            this.id = id;
+            this.htmlUrl = htmlUrl;
+            this.queries = queries;
+        }
+
+        @Override
+        public void run() {
+            boolean isDownloaded = downloadFile(htmlUrl, id);
+            if (isDownloaded) {
+                ResolvedFile resolvedFile = resolveFile(id, queries);
+                if (!resolvedFile.getPathFile().equals("")) {
+                    resolvedFile.setUrl(htmlUrl);
+                    System.out.println("URL: " + resolvedFile.getUrl());
+                    System.out.println("Path to File: " + resolvedFile.getPathFile());
+                    System.out.println("Line: " + resolvedFile.getLines());
+                    System.out.println("Snippet Codes: ");
+                    ArrayList<String> codes = getSnippetCode(resolvedFile.getPathFile(), resolvedFile.getLines());
+                    for (int j = 0; j < codes.size(); j++) {
+                        System.out.println(codes.get(j));
+                    }
+                    resolvedData.add(resolvedFile);
+                }
+            }
+        }
     }
 
     private static boolean downloadFile(String htmlUrl, int fileId) {
@@ -317,32 +326,30 @@ public class CodeSearch {
         return finished;
     }
 
-    private static ResolvedFile resolveFile(int fileId, ArrayList<Query> queries, CombinedTypeSolver solver) {
+    private static ResolvedFile resolveFile(int fileId, ArrayList<Query> queries) {
         String pathFile = new String(DATA_LOCATION + "files/" + fileId + ".txt");
 
         File file = new File(pathFile);
 
         ArrayList<String> snippetCodes = new ArrayList<String>();
+        ArrayList<Integer> lines = new ArrayList<Integer>();
 
-        ResolvedFile resolvedFile = new ResolvedFile("", "", -1, -1, snippetCodes);
-
+        ResolvedFile resolvedFile = new ResolvedFile(queries, "", "", lines, snippetCodes);
+        // System.out.println();
         try {
-            System.out.println();
-            printSign("=", file.toString().length() + 6);
-            System.out.println("File: " + file);
-            printSign("=", file.toString().length() + 6);
-
             List<String> addedJars = getNeededJars(file);
             for (int i = 0; i < addedJars.size(); i++) {
                 try {
                     TypeSolver jarTypeSolver = JarTypeSolver.getJarTypeSolver(addedJars.get(i));
-                    solver.add(jarTypeSolver);
+                    synchronizedTypeSolver.add(jarTypeSolver);
                 } catch (Exception e) {
-                    System.out.println("Package corrupt!");
-                    System.out.println("Corrupted Jars: " + addedJars.get(i));
+                    System.out.println("=== Package corrupt! ===");
+                    System.out.println("Corrupted jars: " + addedJars.get(i));
+                    System.out.println("File location: " + file.toString());
                 }
             }
-            StaticJavaParser.getConfiguration().setSymbolResolver(new JavaSymbolSolver(solver));
+            StaticJavaParser.getConfiguration()
+                    .setSymbolResolver(new JavaSymbolSolver(synchronizedTypeSolver.getTypeSolver()));
             CompilationUnit cu;
             cu = StaticJavaParser.parse(file);
 
@@ -379,11 +386,7 @@ public class CodeSearch {
                             if (isArgumentTypeMatch
                                     && fullyQualifiedName.equals(queries.get(index).getFullyQualifiedName())) {
                                 isResolvedAndParameterMatch.set(index, true);
-                                resolvedFile.setPathFile(pathFile);
-                                resolvedFile.setLine(mce.getBegin().get().line);
-                                resolvedFile.setColumn(mce.getBegin().get().column);
-                                resolvedFile.setCodes(getSnippetCode(resolvedFile.getPathFile(),
-                                        resolvedFile.getLine()));
+                                lines.add(mce.getBegin().get().line);
                             }
                         } catch (UnsolvedSymbolException unsolvedSymbolException) {
                             isResolved.set(index, false);
@@ -393,8 +396,9 @@ public class CodeSearch {
             }
 
             boolean isSuccess = true;
+
             for (int i = 0; i < queries.size(); i++) {
-                System.out.println("\nQuery " + (i + 1) + ": " + queries.get(i));
+                System.out.println("Query " + (i + 1) + ": " + queries.get(i));
                 if (isMethodMatch.get(i)) {
                     if (isResolved.get(i)) {
                         if (isResolvedAndParameterMatch.get(i)) {
@@ -415,21 +419,28 @@ public class CodeSearch {
             }
 
             if (isSuccess) {
-                System.out.println("SUCCESS");
+                resolvedFile.setPathFile(pathFile);
+                resolvedFile.setLines(lines);
+                resolvedFile.setCodes(getSnippetCode(pathFile, lines));
+                System.out.println("=== SUCCESS ===");
+            } else {
+                System.out.println("File location: " + file.toString());
             }
 
         } catch (ParseProblemException parseProblemException) {
-            System.out.println("Parse Problem Exception in Type Resolution");
+            System.out.println("=== Parse Problem Exception in Type Resolution ===");
+            System.out.println("File location: " + pathFile);
         } catch (RuntimeException runtimeException) {
-            System.out.println("Runtime Exception in Type Resolution");
+            System.out.println("=== Runtime Exception in Type Resolution ===");
+            System.out.println("File location: " + pathFile);
         } catch (IOException io) {
-            System.out.println("IO Exception in Type Resolution");
+            System.out.println("=== IO Exception in Type Resolution ===");
+            System.out.println("File location: " + pathFile);
         }
 
         return resolvedFile;
 
     }
-
     private static String prepareQuery(ArrayList<Query> queries) {
         String stringQuery = "";
         for (int i = 0; i < queries.size(); i++) {
@@ -454,6 +465,49 @@ public class CodeSearch {
         }
     }
 
+    private static ArrayList<Query> parseQueries(String s) {
+        ArrayList<Query> queries = new ArrayList<Query>();
+
+        s = s.replace(" ", "");
+        while (!s.equals("")) {
+            int tagLocation = s.indexOf('#');
+            int leftBracketLocation = s.indexOf('(');
+            int rightBracketLocation = s.indexOf(')');
+            if (tagLocation == -1 | leftBracketLocation == -1 || rightBracketLocation == -1
+                    && tagLocation < leftBracketLocation && leftBracketLocation < rightBracketLocation) {
+                System.out.println("Your query isn't accepted");
+                System.out.println("Query Format: " + "method(argument_1, argument_2, ... , argument_n)");
+                System.out.println("Example: "
+                        + "android.app.Notification.Builder#addAction(int, java.lang.CharSequence, android.app.PendingIntent)");
+                ;
+                return new ArrayList<Query>();
+            } else {
+                String fullyQualifiedName = s.substring(0, tagLocation);
+                String method = s.substring(tagLocation + 1, leftBracketLocation);
+                String args = s.substring(leftBracketLocation + 1, rightBracketLocation);
+                ArrayList<String> arguments = new ArrayList<String>();
+                if (!args.equals("")) { // handle if no arguments
+                    String[] arr = args.split(",");
+                    for (int i = 0; i < arr.length; i++) {
+                        arguments.add(arr[i]);
+                    }
+                }
+                Query query = new Query();
+                query.setFullyQualifiedName(fullyQualifiedName);
+                query.setMethod(method);
+                query.setArguments(arguments);
+                queries.add(query);
+                int andLocation = s.indexOf('&');
+                if (andLocation == -1) {
+                    s = "";
+                } else {
+                    s = s.substring(andLocation + 1);
+                }
+            }
+        }
+
+        return queries;
+    }
     private static void initUniqueFolderToSaveData(ArrayList<Query> queries) {
 
         String folderName = "";
@@ -558,9 +612,11 @@ public class CodeSearch {
                 response.setCode(responseCode);
                 JSONObject body = new JSONObject(request.body());
                 response.setTotalCount(body.getInt("total_count"));
-                response.setItem(body.getJSONArray("items"));
-                response.setUrlRequest(request.toString());
-                response.setNextUrlRequest(getNextLinkFromResponse(request.header("Link")));
+                if (body.getInt("total_count") > 0) {
+                    response.setItem(body.getJSONArray("items"));
+                    response.setUrlRequest(request.toString());
+                    response.setNextUrlRequest(getNextLinkFromResponse(request.header("Link")));
+                }
                 response_ok = true;
             } else if (responseCode == BAD_CREDENTIAL) {
                 System.out.println("Authorization problem");

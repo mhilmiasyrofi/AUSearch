@@ -3,18 +3,25 @@ package soar.edu.searchvisualization.model;
 import java.util.ArrayList;
 
 public class ResolvedFile {
+    private ArrayList<Query> queries;
     private String url;
     private String pathFile;
-    private int line;
-    private int column;
-    private ArrayList<String> codes =  new ArrayList<String>();
+    private ArrayList<Integer> lines;
+    private ArrayList<String> codes = new ArrayList<String>();
 
-    public ResolvedFile(String url, String pathFile, int line, int column, ArrayList<String> codes) {
+    public ResolvedFile(ArrayList<Query> queries, String url, String pathFile, ArrayList<Integer> lines, ArrayList<String> codes) {
+        this.queries = queries;
         this.url = url;
         this.pathFile = pathFile;
-        this.line = line;
-        this.column = column;
+        this.lines = lines;
         this.codes = codes;
+    }
+
+    /**
+     * @return the queries
+     */
+    public ArrayList<Query> getQueries() {
+        return queries;
     }
 
     /**
@@ -34,15 +41,8 @@ public class ResolvedFile {
     /**
      * @return the line
      */
-    public int getLine() {
-        return line;
-    }
-
-    /**
-     * @return the column
-     */
-    public int getColumn() {
-        return column;
+    public ArrayList<Integer> getLines() {
+        return lines;
     }
 
     /**
@@ -50,6 +50,14 @@ public class ResolvedFile {
      */
     public ArrayList<String> getCodes() {
         return codes;
+    }
+
+
+    /**
+     * @param queries the queries to set
+     */
+    public void setQueries(ArrayList<Query> queries) {
+        this.queries = queries;
     }
 
     /**
@@ -69,15 +77,8 @@ public class ResolvedFile {
     /**
      * @param line the line to set
      */
-    public void setLine(int line) {
-        this.line = line;
-    }
-
-    /**
-     * @param column the column to set
-     */
-    public void setColumn(int column) {
-        this.column = column;
+    public void setLines(ArrayList<Integer> lines) {
+        this.lines = lines;
     }
 
     /**
