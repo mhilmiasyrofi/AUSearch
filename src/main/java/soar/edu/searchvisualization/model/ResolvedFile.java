@@ -24,7 +24,7 @@ public class ResolvedFile {
 
     public String getRepoName() {
         String[] arr = this.url.split("/");
-        return arr[3] + "/" + arr[5];
+        return arr[3] + "/" + arr[4];
     }
     
     public String getPathToFile() {
@@ -33,7 +33,7 @@ public class ResolvedFile {
         for (int i = 0; i < arr.length; i++) {
             if (i >= 7) {
                 path += arr[i];
-                if (i != arr.length) {
+                if (i != (arr.length - 1)) {
                     path += "/";
                 }
             }
