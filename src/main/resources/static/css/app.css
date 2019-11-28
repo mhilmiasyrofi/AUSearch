@@ -3,8 +3,17 @@
 }
 
 #subtitle {
-  font-size: 20px;
+  font-size: 24px;
   margin-top: -10px;
+}
+
+.repo-name {
+  font-size: 18px;
+  color: black;
+}
+
+.path-to-file {
+  font-size: 18px;
 }
 
 #query {

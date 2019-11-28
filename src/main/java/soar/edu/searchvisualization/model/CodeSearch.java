@@ -80,7 +80,7 @@ public class CodeSearch {
     private static final int ABUSE_RATE_LIMITS = 403;
     private static final int UNPROCESSABLE_ENTITY = 422;
 
-    private static long MAX_DATA = 5;
+    private static final int MAX_DATA = 2;
 
     // folder location to save the downloaded files and jars
     private static String DATA_LOCATION = "src/main/java/soar/edu/searchvisualization/data/";
@@ -118,7 +118,7 @@ public class CodeSearch {
                 System.out.println("Line: " + resolvedData.getResolvedFiles().get(i).getLines());
                 System.out.println("=== Snippet Codes ===");
                 ArrayList<String> codes = getSnippetCode(resolvedData.getResolvedFiles().get(i).getPathFile(),
-                        resolvedData.getResolvedFiles().get(i).getLines());
+                        resolvedData.getResolvedFiles().get(i).getLines(), resolvedData.getResolvedFiles().get(i).getUrl());
                 for (int j = 0; j < codes.size(); j++) {
                     System.out.println(codes.get(j));
                 }
@@ -129,7 +129,7 @@ public class CodeSearch {
         return resolvedData;
     }
 
-    private static ArrayList<String> getSnippetCode(String pathFile, ArrayList<Integer> lines) {
+    private static ArrayList<String> getSnippetCode(String pathFile, ArrayList<Integer> lines, String url) {
         ArrayList<String> codes = new ArrayList<String>();
 
         int min, max, length;
@@ -168,7 +168,7 @@ public class CodeSearch {
                         }
                     }
                     if (desiredLine) {
-                        line = "<mark>" + i + line + "</mark>";
+                        line = "<a href=\"" + url + "#L" + i +  "\"><mark>" + i + line + "</mark>";
                         desiredLine = false;
                     } else {
                         line = i + line;
@@ -213,7 +213,7 @@ public class CodeSearch {
             int id = 0;
             ArrayList<String> urls = new ArrayList<>();
 
-            while (resolvedData.getResolvedFiles().size() < 5) {
+            while (resolvedData.getResolvedFiles().size() < MAX_DATA) {
                 if (data.size() < (2 * NUMBER_CORE)) {
                     response = handleGithubRequestWithUrl(nextUrlRequest);
                     item = response.getItem();
@@ -269,11 +269,12 @@ public class CodeSearch {
                 ResolvedFile resolvedFile = resolveFile(id, queries);
                 if (!resolvedFile.getPathFile().equals("")) {
                     resolvedFile.setUrl(htmlUrl);
+                    ArrayList<String> codes = getSnippetCode(resolvedFile.getPathFile(), resolvedFile.getLines(), resolvedFile.getUrl());
+                    resolvedFile.setCodes(codes);
                     System.out.println("URL: " + resolvedFile.getUrl());
                     System.out.println("Path to File: " + resolvedFile.getPathFile());
                     System.out.println("Line: " + resolvedFile.getLines());
                     System.out.println("Snippet Codes: ");
-                    ArrayList<String> codes = getSnippetCode(resolvedFile.getPathFile(), resolvedFile.getLines());
                     for (int j = 0; j < codes.size(); j++) {
                         System.out.println(codes.get(j));
                     }
@@ -421,7 +422,6 @@ public class CodeSearch {
             if (isSuccess) {
                 resolvedFile.setPathFile(pathFile);
                 resolvedFile.setLines(lines);
-                resolvedFile.setCodes(getSnippetCode(pathFile, lines));
                 System.out.println("=== SUCCESS ===");
             } else {
                 System.out.println("File location: " + file.toString());

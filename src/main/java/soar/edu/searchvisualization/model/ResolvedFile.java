@@ -17,6 +17,30 @@ public class ResolvedFile {
         this.codes = codes;
     }
 
+    public String getUsername() {
+        String[] arr = this.url.split("/");
+        return arr[3];
+    }
+
+    public String getRepoName() {
+        String[] arr = this.url.split("/");
+        return arr[3] + "/" + arr[5];
+    }
+    
+    public String getPathToFile() {
+        String path = "";
+        String[] arr = this.url.split("/");
+        for (int i = 0; i < arr.length; i++) {
+            if (i >= 7) {
+                path += arr[i];
+                if (i != arr.length) {
+                    path += "/";
+                }
+            }
+        }
+        return path;
+    }
+
     /**
      * @return the queries
      */
