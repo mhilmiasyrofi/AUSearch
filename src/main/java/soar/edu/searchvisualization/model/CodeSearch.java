@@ -190,13 +190,11 @@ public class CodeSearch {
 
         String query = prepareQuery(queries);
 
-        int lower_bound, upper_bound, page, per_page_limit;
-        lower_bound = 0;
-        upper_bound = 384000;
+        int page, per_page_limit;
         page = 1;
         per_page_limit = 30;
 
-        Response response = handleCustomGithubRequest(query, lower_bound, upper_bound, page, per_page_limit);
+        Response response = handleCustomGithubRequest(query, page, per_page_limit);
         String nextUrlRequest;
         if (response.getTotalCount() == 0) {
             System.out.println("No item match with the query");
@@ -442,18 +440,14 @@ public class CodeSearch {
 
     }
     private static String prepareQuery(ArrayList<Query> queries) {
-        String stringQuery = "";
+        String queriesAsString = "";
         for (int i = 0; i < queries.size(); i++) {
-            Query query = queries.get(i);
-            stringQuery += query.getMethod();
-            for (int j = 0; j < query.getArguments().size(); j++) {
-                stringQuery += " " + query.getArguments().get(j);
-            }
-            if (i != queries.size() - 1)
-                stringQuery += " ";
+            queriesAsString += queries.get(i).toStringRequest();
+            if (i != (queries.size() - 1))
+                queriesAsString += " ";
         }
 
-        return stringQuery;
+        return queriesAsString;
     }
 
     private static void printQuery(ArrayList<Query> queries) {
@@ -566,28 +560,7 @@ public class CodeSearch {
 
         return download_url;
     }
-
-    public static class URLRunnable implements Runnable {
-        private final String url;
-
-        URLRunnable(String query, int lower_bound, int upper_bound, int page, int per_page_limit) {
-            upper_bound++;
-            lower_bound--;
-            String size = lower_bound + ".." + upper_bound; // lower_bound < size < upper_bound
-            this.url = endpoint + "?" + PARAM_QUERY + "=" + query + "+in:file+language:java+extension:java+size:" + size
-                    + "&" + PARAM_PAGE + "=" + page + "&" + PARAM_PER_PAGE + "=" + per_page_limit;
-        }
-
-        @Override
-        public void run() {
-            Response response = handleGithubRequestWithUrl(url);
-            JSONArray item = response.getItem();
-            // System.out.println("Request: " + response.getUrlRequest());
-            // System.out.println("Number items: " + item.length());
-            synchronizedData.addArray(item);
-        }
-    }
-
+    
     private static Response handleGithubRequestWithUrl(String url) {
 
         boolean response_ok = false;
@@ -658,17 +631,13 @@ public class CodeSearch {
         return response;
     }
 
-    private static Response handleCustomGithubRequest(String query, int lower_bound, int upper_bound, int page,
+    private static Response handleCustomGithubRequest(String query, int page,
             int per_page_limit) {
-        // The size range is exclusive
-        upper_bound++;
-        lower_bound--;
-        String size = lower_bound + ".." + upper_bound; // lower_bound < size < upper_bound
 
         String url;
         Response response = new Response();
 
-        url = endpoint + "?" + PARAM_QUERY + "=" + query + "+in:file+language:java+extension:java+size:" + size + "&"
+        url = endpoint + "?" + PARAM_QUERY + "=" + query + "+in:file+language:java" + "&"
                 + PARAM_PAGE + "=" + page + "&" + PARAM_PER_PAGE + "=" + per_page_limit;
         response = handleGithubRequestWithUrl(url);
 
