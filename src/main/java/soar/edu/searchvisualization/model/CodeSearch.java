@@ -209,7 +209,6 @@ public class CodeSearch {
             }
 
             int id = 0;
-            ArrayList<String> urls = new ArrayList<>();
 
             while (resolvedData.getResolvedFiles().size() < MAX_DATA) {
                 if (data.size() < (2 * NUMBER_CORE)) {
@@ -230,7 +229,6 @@ public class CodeSearch {
 
                 for (int i = 0; i < NUMBER_CORE; i++) {
                     String htmlUrl = data.remove();
-                    urls.add(htmlUrl);
                     id = id + 1;
                     Runnable worker = new RunnableResolver(id, htmlUrl, queries);
                     executor.execute(worker);
@@ -306,8 +304,6 @@ public class CodeSearch {
             url = new URL(downloadableUrl);
             ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
             String pathFile = new String(DATA_LOCATION + "files/" + fileName);
-            System.out.println(downloadableUrl);
-            System.out.println(pathFile);
             FileOutputStream fileOutputStream = new FileOutputStream(pathFile);
             fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
             fileOutputStream.close();
@@ -362,22 +358,27 @@ public class CodeSearch {
                 isResolvedAndParameterMatch.add(false);
             }
 
+
             for (int i = 0; i < queries.size(); i++) {
                 final int index = i;
                 Query query = queries.get(index);
-                cu.findAll(MethodCallExpr.class).forEach(mce -> {
+                ArrayList<MethodCallExpr> methodCallExprs = (ArrayList<MethodCallExpr>) cu
+                        .findAll(MethodCallExpr.class);
+                for (int j = 0; j < methodCallExprs.size(); j++) {
+                    MethodCallExpr mce = methodCallExprs.get(j);
                     if (mce.getName().toString().equals(query.getMethod())
                             && mce.getArguments().size() == query.getArguments().size()) {
                         isMethodMatch.set(index, true);
                         try {
+                            System.out.println("MCE: " + mce);
                             ResolvedMethodDeclaration resolvedMethodDeclaration = mce.resolve();
                             String fullyQualifiedName = resolvedMethodDeclaration.getPackageName() + "."
                                     + resolvedMethodDeclaration.getClassName();
                             isResolved.set(index, true);
                             boolean isArgumentTypeMatch = true;
-                            for (int j = 0; j < resolvedMethodDeclaration.getNumberOfParams(); j++) {
-                                if (!query.getArguments().get(j)
-                                        .equals(resolvedMethodDeclaration.getParam(j).describeType())) {
+                            for (int k = 0; k < resolvedMethodDeclaration.getNumberOfParams(); k++) {
+                                if (!query.getArguments().get(k)
+                                        .equals(resolvedMethodDeclaration.getParam(k).describeType())) {
                                     isArgumentTypeMatch = false;
                                     break;
                                 }
@@ -386,12 +387,13 @@ public class CodeSearch {
                                     && fullyQualifiedName.equals(queries.get(index).getFullyQualifiedName())) {
                                 isResolvedAndParameterMatch.set(index, true);
                                 lines.add(mce.getBegin().get().line);
+                                break;
                             }
                         } catch (UnsolvedSymbolException unsolvedSymbolException) {
-                            isResolved.set(index, false);
+                            // isResolved.set(index, false);
                         }
                     }
-                });
+                }
             }
 
             boolean isSuccess = true;
@@ -560,7 +562,7 @@ public class CodeSearch {
 
         return download_url;
     }
-    
+
     private static Response handleGithubRequestWithUrl(String url) {
 
         boolean response_ok = false;
