@@ -16,7 +16,7 @@ import soar.edu.searchvisualization.utils.DirExplorer;
 public class SynchronizedTypeSolver {
     private CombinedTypeSolver typeSolver;
 
-    private final String ANDROID_JAR_LOCATION = "src/main/java/com/project/githubsearch/android/";
+    private final String ANDROID_JAR_LOCATION = "src/main/java/soar/edu/searchvisualization/android/";
 
     public SynchronizedTypeSolver() {
         this.typeSolver = new CombinedTypeSolver(new ReflectionTypeSolver(false),
