@@ -61,7 +61,7 @@ public class CodeSearch {
     // run multiple token
     // please make sure that the number of thread is equal with the number of tokens
     private static final int NUMBER_THREADS = 3;
-    private static final int NUMBER_CORE = 4;
+    private static final int NUMBER_CORE = 1;
 
     // parameter for the request
     private static final String PARAM_QUERY = "q"; //$NON-NLS-1$
@@ -80,7 +80,7 @@ public class CodeSearch {
     private static final int ABUSE_RATE_LIMITS = 403;
     private static final int UNPROCESSABLE_ENTITY = 422;
 
-    private static final int MAX_DATA = 2;
+    private static final int MAX_DATA = 1;
 
     // folder location to save the downloaded files and jars
     private static String DATA_LOCATION = "src/main/java/soar/edu/searchvisualization/data/";
@@ -88,7 +88,6 @@ public class CodeSearch {
     
     private static final String endpoint = "https://api.github.com/search/code";
 
-    private static SynchronizedData synchronizedData = new SynchronizedData();
     private static SynchronizedFeeder synchronizedFeeder = new SynchronizedFeeder();
 
     private static ResolvedData resolvedData = new ResolvedData();
@@ -102,7 +101,6 @@ public class CodeSearch {
 
     public void clean() {
         resolvedData = new ResolvedData();
-        synchronizedData = new SynchronizedData();
     }
 
     public ResolvedData run() {
@@ -222,27 +220,55 @@ public class CodeSearch {
                 }
 
                 // System.out.println("=====================");
+                // System.out.println("without multi-threading");
+                // System.out.println("=====================");
+                String htmlUrl = data.remove();
+                id = id + 1;
+                downloadAndResolveFile(id, htmlUrl, queries);
+
+                // System.out.println("=====================");
                 // System.out.println("Multi-threading start");
                 // System.out.println("=====================");
 
-                ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);
+                // ExecutorService executor = Executors.newFixedThreadPool(NUMBER_THREADS);
 
-                for (int i = 0; i < NUMBER_CORE; i++) {
-                    String htmlUrl = data.remove();
-                    id = id + 1;
-                    Runnable worker = new RunnableResolver(id, htmlUrl, queries);
-                    executor.execute(worker);
-                }
+                // for (int i = 0; i < NUMBER_CORE; i++) {
+                //     String htmlUrl = data.remove();
+                //     id = id + 1;
+                //     Runnable worker = new RunnableResolver(id, htmlUrl, queries);
+                //     executor.execute(worker);
+                // }
 
-                executor.shutdown();
-                // Wait until all threads are finish
-                while (!executor.isTerminated()) {
-                }
+                // executor.shutdown();
+                // // Wait until all threads are finish
+                // while (!executor.isTerminated()) {
+                // }
 
                 // System.out.println("===================");
                 // System.out.println("Multi-threading end");
                 // System.out.println("===================");
 
+            }
+        }
+    }
+
+    public static void downloadAndResolveFile(int id, String htmlUrl, ArrayList<Query> queries) {
+        boolean isDownloaded = downloadFile(htmlUrl, id);
+        if (isDownloaded) {
+            ResolvedFile resolvedFile = resolveFile(id, queries);
+            if (!resolvedFile.getPathFile().equals("")) {
+                resolvedFile.setUrl(htmlUrl);
+                ArrayList<String> codes = getSnippetCode(resolvedFile.getPathFile(), resolvedFile.getLines(),
+                        resolvedFile.getUrl());
+                resolvedFile.setCodes(codes);
+                System.out.println("URL: " + resolvedFile.getUrl());
+                System.out.println("Path to File: " + resolvedFile.getPathFile());
+                System.out.println("Line: " + resolvedFile.getLines());
+                System.out.println("Snippet Codes: ");
+                for (int j = 0; j < codes.size(); j++) {
+                    System.out.println(codes.get(j));
+                }
+                resolvedData.add(resolvedFile);
             }
         }
     }
@@ -260,23 +286,7 @@ public class CodeSearch {
 
         @Override
         public void run() {
-            boolean isDownloaded = downloadFile(htmlUrl, id);
-            if (isDownloaded) {
-                ResolvedFile resolvedFile = resolveFile(id, queries);
-                if (!resolvedFile.getPathFile().equals("")) {
-                    resolvedFile.setUrl(htmlUrl);
-                    ArrayList<String> codes = getSnippetCode(resolvedFile.getPathFile(), resolvedFile.getLines(), resolvedFile.getUrl());
-                    resolvedFile.setCodes(codes);
-                    System.out.println("URL: " + resolvedFile.getUrl());
-                    System.out.println("Path to File: " + resolvedFile.getPathFile());
-                    System.out.println("Line: " + resolvedFile.getLines());
-                    System.out.println("Snippet Codes: ");
-                    for (int j = 0; j < codes.size(); j++) {
-                        System.out.println(codes.get(j));
-                    }
-                    resolvedData.add(resolvedFile);
-                }
-            }
+            downloadAndResolveFile(id, htmlUrl, queries);
         }
     }
 
