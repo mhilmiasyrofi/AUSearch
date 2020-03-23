@@ -67,6 +67,5 @@ I know that you still not sure with this app because off the small commit change
 ## Paper
 
 
-Our [paper](SANER_2020_AUSearch.pdf), titled "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution
-", titled was accepted at 27th IEEE International Conference on
+Our [paper](SANER_2020_AUSearch.pdf), titled "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution", was accepted at 27th IEEE International Conference on
 Software Analysis, Evolution and Reengineering as a Tool Track Paper. 
