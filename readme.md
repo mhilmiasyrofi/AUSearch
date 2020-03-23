@@ -68,4 +68,4 @@ I know that you still not sure with this app because off the small commit change
 
 
 Our [paper](SANER_2020_AUSearch.pdf), titled "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution", was accepted at 27th IEEE International Conference on
-Software Analysis, Evolution and Reengineering as a Tool Track Paper. 
+Software Analysis, Evolution and Reengineering (SANER 2019) as a Tool Track Paper. 
