@@ -1,6 +1,12 @@
 ## AUSearch
+
+Code for SANER 2020 "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution" by [Muhammad Hilmi Asyrofi](https://www.linkedin.com/in/mhilmiasyrofi/), [Ferdian Thung](https://scholar.google.com/citations?hl=en&user=47okQ-UAAAAJ), [David Lo](https://scholar.google.com/citations?user=Ra4bt-oAAAAJ&hl=en), and [Lingxiao Jiang](https://scholar.google.com/citations?hl=en&user=0hssXLPZL2YC)
+
+[Paper PDF](SANER_2020_AUSearch.pdf) | [DOI](https://ieeexplore.ieee.org/document/9054809)
+
+
 #### Find API usage example here!
-A web apps that helps you to find some API usage examples from java source code. Given an API query that allows type constraints, AUSearch finds code examples in GitHub that contain usages of the specific APIs in the query. AUSearch performs type resolutions to ensure that the API usages found in
+AUSearch is a web apps that helps you to find some API usage examples from java source code. Given an API query that allows type constraints, AUSearch finds code examples in GitHub that contain usages of the specific APIs in the query. AUSearch performs type resolutions to ensure that the API usages found in
 the returned files are indeed invocations of the APIs specified in the query and highlights the relevant lines of code in the files for easier reference.
 
 ## Prerequisite
@@ -63,9 +69,3 @@ This is one of the example if you write correct query.
 ## Developer Mark 
 **Note** that this apps is already tested on Ubuntu and Mac OS. Unfortunately, this doesn't work well on Microsoft shell because of the multi-threading part. Don't worry, we still find the solution for this.
 I know that you still not sure with this app because off the small commit changes. You can find more commit changes on this [repository](https://github.com/mhilmiasyrofi/github-code-search) (I develop on CLI before). You can use that repo also if you prefer to see the result on terminal only. If you find a problem while using this apps, please notify me via [this](mhilmia@smu.edu.sg) email. I will help you soon to ensure that you can try this amazing apps immediately :). 
-
-## Paper
-
-
-Our [paper](SANER_2020_AUSearch.pdf), titled "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution", was accepted at 27th IEEE International Conference on
-Software Analysis, Evolution and Reengineering (SANER 2020) as a Tool Track Paper. 
