@@ -68,4 +68,17 @@ This is one of the example if you write correct query.
 
 ## Developer Mark 
 **Note** that this apps is already tested on Ubuntu and Mac OS. Unfortunately, this doesn't work well on Microsoft shell because of the multi-threading part. Don't worry, we still find the solution for this.
-I know that you still not sure with this app because off the small commit changes. You can find more commit changes on this [repository](https://github.com/mhilmiasyrofi/github-code-search) (I develop on CLI before). You can use that repo also if you prefer to see the result on terminal only. If you find a problem while using this apps, please notify me via [this](mhilmia@smu.edu.sg) email. I will help you soon to ensure that you can try this amazing apps immediately :). 
+I know that you still not sure with this app because off the small commit changes. You can find more commit changes on this [repository](https://github.com/mhilmiasyrofi/github-code-search) (I develop on CLI before). You can use that repo also if you prefer to see the result on terminal only. If you find a problem while using this apps, please notify me via [this](mhilmia@smu.edu.sg) email. I will help you soon to ensure that you can try this amazing apps immediately :).
+
+#### Please Cite This!
+```
+@INPROCEEDINGS{Asyrofi2020AUSearch,  
+  author={M. H. {Asyrofi} and F. {Thung} and D. {Lo} and L. {Jiang}},  
+  booktitle={2020 IEEE 27th International Conference on Software Analysis, Evolution and Reengineering (SANER)},   
+  title={AUSearch: Accurate API Usage Search in GitHub Repositories with Type Resolution},   
+  year={2020},  volume={},  number={},  
+  pages={637-641},  
+  doi={10.1109/SANER48275.2020.9054809}}
+```
+
+
