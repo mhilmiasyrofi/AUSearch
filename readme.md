@@ -2,7 +2,7 @@
 
 Code for SANER 2020 "AUSearch: Accurate API Usage Search in Github Repositories with Type Resolution" by [Muhammad Hilmi Asyrofi](https://www.linkedin.com/in/mhilmiasyrofi/), [Ferdian Thung](https://scholar.google.com/citations?hl=en&user=47okQ-UAAAAJ), [David Lo](https://scholar.google.com/citations?user=Ra4bt-oAAAAJ&hl=en), and [Lingxiao Jiang](https://scholar.google.com/citations?hl=en&user=0hssXLPZL2YC)
 
-[Paper PDF](SANER_2020_AUSearch.pdf) | [DOI](https://ieeexplore.ieee.org/document/9054809)
+[Paper PDF](https://docs.google.com/viewer?url=https://raw.githubusercontent.com/mhilmiasyrofi/ausearch/master/SANER_2020_AUSearch.pdf) | [DOI](https://ieeexplore.ieee.org/document/9054809)
 
 
 #### Find API usage example here!
